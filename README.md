@@ -1,0 +1,2 @@
+# Equity Portfolio Tracker and Allocation Optimizer
+This is one of my first complete python projects. The motivation behind the project was to use historical prices to help me better allocate funds across holdings. I intend to build out other projects that help suggest equities that would improve a portfolio using a variety of techniques, including simple Value Investing, momentum, and knn credit worthiness. This project and readme is under development.
