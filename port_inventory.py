@@ -19,11 +19,12 @@ class Portfolio:
         for x in self.holdings:
             self.holdings[x].curr_hold_dat(date)
         self.pos_val = sum([self.holdings[x].curr_val for x in self.holdings])
-        self.purse = sum([self.holdings[x].cash for x in self.holdings])
+        self.purse = sum([self.holdings[x].cash for x in self.holdings]) +\
+                     sum([self.holdings[x].dividends for x in self.holdings])
         self.port_val = self.purse + self.pos_val
 
     def get_data(self, tick, dat_loc, start):
-        t_hold = Holding(tick, 1)
+        t_hold = Holding(tick, 0)
         t_hold.get_df(dat_loc)
         t_hold.get_year_before(start)
         self.add_holding(t_hold)
@@ -71,18 +72,36 @@ class Holding:
         self.df = None
         self.year_before = []
         self.daily_ret = []
+        self.dividends = 0
 
     def get_df(self, data_loc):
-        df = pd.read_csv(data_loc + self.name + '.csv')
+        df = pd.read_csv(data_loc + self.name + '.csv', usecols=['date',
+                                                                 '5. adjusted close',
+                                                                 '7. dividend amount'])
         df.iloc[:, 0] = [pd.to_datetime(x).date() for x in df.iloc[:, 0]]
-        self.df = df.iloc[:, [0, 5]]
+        self.df = df
 
     def trade(self, date, pos):
+        self.check_div(date)
         self.curr_price = self.df[self.df.iloc[:, 0] == date].iloc[0, 1]
         self.trades.append(Trade(date, pos, self.curr_price))
         self.curr_pos += pos
         self.cash -= self.curr_price * pos
-        
+
+    def check_div(self, date):
+        if len(self.trades) > 0:
+            last_trade_dt = self.trades[-1].date
+            if last_trade_dt:
+                check_df = self.df[(self.df.iloc[:, 0] >= last_trade_dt) &
+                                   (self.df.iloc[:, 0] <= date)]
+                print(check_df)
+                if any(check_df[check_df.iloc[:, 2] > 0]):
+                    check_df = check_df[check_df.iloc[:, 2] > 0]
+                    print(check_df)
+                    for r in check_df.iloc[:, 2]:
+                        self.dividends += r * self.curr_pos
+                        self.cash += self.dividends
+
     def print_hold_dat(self):
         inv = [['Stock', 'Pos', 'Curr Price', 'Val', 'Allocation']]
         colwidth = max(len(word) for row in inv for word in row[:-1]) + 2
@@ -122,6 +141,7 @@ class Holding:
         self.pnl = 0
         self.allo = 0
         self.trades = []
+        self.dividends = 0
 
 class Trade:
     def __init__(self, date, trade_pos, decision_price):
@@ -130,4 +150,17 @@ class Trade:
         self.dec_price = decision_price
         self.trade_val = self.trade_pos * self.dec_price
 
+    def find_trade(self, date):
+        if self.date == date:
+            return self.trade_val, self.date
+
+    def print_trade_dat(self):
+        inv = [['Date', 'Pos', 'Decision Price', 'Val']]
+        colwidth = max(len(word) for row in inv for word in row[:-1]) + 2
+        inv.append([str(x) for x in [self.date,
+                                     self.trade_pos,
+                                     self.dec_price,
+                                     self.trade_val]])
+        for row in inv:
+            print("".join(word.ljust(colwidth) for word in row))
 

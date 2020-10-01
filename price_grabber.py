@@ -8,7 +8,7 @@ import stat
 from indices_list import *
 import sched,time, threading
 
-symbols = set(sp_500)
+symbols = test_port
 market = 'USD'
 function = 'TIME_SERIES_DAILY_ADJUSTED'
 interval = '5min'
@@ -16,7 +16,7 @@ datatype = 'csv'
 api_key1 = "TS943WP11EVAK281"
 api_key2 = "PUQT1Q2BJJIGP7MR"
 api_key = api_key1
-data_path = 'C:\\Users\\Jeff\\Documents\\Trading\\Python\\Data\\Alpha_vantage\\S&P_500\\'
+data_path = 'C:\\Users\\Jeff\\Documents\\Trading\\Python\\Data\\Alpha_vantage\\port_creator_dat\\'
 api_url = "https://www.alphavantage.co/query"
 outputsize = 'full'
 
