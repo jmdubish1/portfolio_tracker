@@ -15,7 +15,7 @@ def make_ret_mat(port, tickers):
     for tick in tickers:
         day_ret_mat.append(np.array(port.holdings[tick].daily_ret)[1:]*100)
         ann_rets.append(get_ann_ret(port.holdings[tick].daily_ret*100))
-        
+
     day_ret_mat = np.array(day_ret_mat)
     ann_rets = np.array(ann_rets).transpose()
     

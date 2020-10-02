@@ -73,6 +73,7 @@ class Holding:
         self.year_before = []
         self.daily_ret = []
         self.dividends = 0
+        self.dividend_dat = []
 
     def get_df(self, data_loc):
         df = pd.read_csv(data_loc + self.name + '.csv', usecols=['date',
@@ -128,9 +129,12 @@ class Holding:
         return self.curr_price
 
     def get_year_before(self, start):
-        year_before = self.df[(self.df.iloc[:, 0] <= pd.to_datetime(start).date())].iloc[:, 1]
-        self.year_before = year_before[-252:]
+        year_before_df = self.df[(self.df.iloc[:, 0] <= pd.to_datetime(start).date())]
+        self.year_before = year_before_df.iloc[252:505, 1]
+        self.dividend_dat = sum(year_before_df.iloc[252:505, 2])/self.year_before.iloc[-252]
+
         self.daily_ret = np.log(self.year_before) - np.log(self.year_before.shift(1))
+        self.daily_ret.append(pd.Series(self.dividend_dat))
 
     def holding_reset(self):
         self.cash = 0
