@@ -19,8 +19,9 @@ class Portfolio:
         for x in self.holdings:
             self.holdings[x].curr_hold_dat(date)
         self.pos_val = sum([self.holdings[x].curr_val for x in self.holdings])
-        self.purse = sum([self.holdings[x].cash for x in self.holdings]) +\
+        self.purse = sum([self.holdings[x].cash for x in self.holdings]) + \
                      sum([self.holdings[x].dividends for x in self.holdings])
+
         self.port_val = self.purse + self.pos_val
 
     def get_data(self, tick, dat_loc, start):
@@ -83,8 +84,7 @@ class Holding:
         self.df = df
 
     def trade(self, date, pos):
-        self.check_div(date)
-        self.curr_price = self.df[self.df.iloc[:, 0] == date].iloc[0, 1]
+        self.curr_hold_dat(date)
         self.trades.append(Trade(date, pos, self.curr_price))
         self.curr_pos += pos
         self.cash -= self.curr_price * pos
@@ -95,13 +95,12 @@ class Holding:
             if last_trade_dt:
                 check_df = self.df[(self.df.iloc[:, 0] >= last_trade_dt) &
                                    (self.df.iloc[:, 0] <= date)]
-                print(check_df)
                 if any(check_df[check_df.iloc[:, 2] > 0]):
                     check_df = check_df[check_df.iloc[:, 2] > 0]
-                    print(check_df)
+
                     for r in check_df.iloc[:, 2]:
-                        self.dividends += r * self.curr_pos
-                        self.cash += self.dividends
+                        if r > 0:
+                            self.dividends += r
 
     def print_hold_dat(self):
         inv = [['Stock', 'Pos', 'Curr Price', 'Val', 'Allocation']]
@@ -117,6 +116,7 @@ class Holding:
     def curr_hold_dat(self, date):
         self.curr_price = self.df[self.df.iloc[:, 0] == date].iloc[0, 1]
         self.curr_val = self.curr_pos * self.curr_price
+        self.check_div(date)
         if self.curr_pos > 0:
             self.side = 'long'
         elif self.curr_pos < 0:
