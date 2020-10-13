@@ -9,13 +9,14 @@ import itertools
 
 dat_loc = 'C:\\Users\\Jeff\\Documents\\Trading\\Python\\Data\\Alpha_vantage\\port_creator_dat\\' \
           'TIME_SERIES_DAILY_ADJUSTED\\'
-# world = random.sample(list(set(sp_500)), 10)
-world = list(set(sp_500))
-begin_stocks_dict = test_port
-total_in_port = 9
+world = random.sample(list(set(sp_600)), 400)
+tick_group = 'sp600'
+# world = list(set(sp_600))
+begin_stocks_dict = tda_paper_port
+total_in_port = 12
 
 start_cash = 1000000
-risk_free = .0025
+risk_free = .018
 iterations = [40000]
 
 start = pd.to_datetime("2019-09-27").date()
@@ -63,8 +64,11 @@ def main():
     for tick in begin_stocks:
         data_port.get_data(tick, dat_loc, start)
 
-    tick_combos = itertools.combinations(tickers, total_in_port - len(begin_stocks))
-    tick_combos = [i for i in tick_combos]
+    if total_in_port - len(begin_stocks) >= 2:
+        tick_combos = itertools.combinations(tickers, total_in_port - len(begin_stocks))
+        tick_combos = [i for i in tick_combos]
+    else:
+        tick_combos = tickers
 
     full_res_dict = {}
     i = 0
@@ -75,13 +79,16 @@ def main():
     for combo in tick_combos:
 
         port = Portfolio('main')
-        combo_1 = [c for c in combo]
+        if type(combo) != str:
+            combo_1 = [c for c in combo]
+        else:
+            combo_1 = [combo]
 
         for tick in combo_1 + begin_stocks:
             port.add_holding(data_port.holdings[tick])
 
         for itr in range(0, len(iterations)):
-            working_dict = find_optimal_ports(port, combo, weight_covs[itr], begin_stocks, iterations[itr], risk_free)
+            working_dict = find_optimal_ports(port, combo_1, weight_covs[itr], begin_stocks, iterations[itr], risk_free)
 
             # print(working_dict)
 
@@ -113,12 +120,12 @@ def main():
             full_res_dict[i] = temp_dict
 
             if co % 1000 == 0:
-                save_res_dict(full_res_dict, world, total_in_port)
+                save_res_dict(full_res_dict, world, total_in_port, tick_group)
 
             i += 1
         co += 1
 
-    save_res_dict(full_res_dict, world, total_in_port)
+    save_res_dict(full_res_dict, world, total_in_port, tick_group)
 
     # marg_df.to_csv('marg_iter_improv.csv')
 

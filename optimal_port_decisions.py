@@ -57,26 +57,27 @@ def create_weights_w_allo(num_in_port, iters, given_weights):
         if given_weights[g] > 0:
             allos.append([g, given_weights[g]])
 
-    allo_sum = 1 - sum([al[1] for al in allos])
-
     num_in_port -= len(allos)
     weights = []
     l, h = [1, 2]
     for i in range(0, int(iters * .8)):
         group_1 = [random.uniform(0, 1) for x in range(0, num_in_port)]
-        weights.append([group_1[x]*allo_sum / sum(group_1) for x in range(0, len(group_1))])
+        weights.append([group_1[x]/sum(group_1) for x in range(0, len(group_1))])
     for i in range(int(iters * .8), int(iters * .9)):
         group_2 = [random.uniform(l, h) for x in [1]] + [random.uniform(0, 1) for x in range(0, num_in_port - 1)]
-        weights.append([group_2[x]*allo_sum / sum(group_2) for x in range(0, len(group_2))])
+        weights.append([group_2[x]/sum(group_2) for x in range(0, len(group_2))])
     for i in range(int(iters * .9), int(iters)):
         group_3 = [random.uniform(l, h) for x in [1, 2]] + [random.uniform(0, 1) for x in range(0, num_in_port - 2)]
-        weights.append([group_3[x]*allo_sum / sum(group_3) for x in range(0, len(group_3))])
+        weights.append([group_3[x]/sum(group_3) for x in range(0, len(group_3))])
 
+    w_allo = []
     for wts in weights:
         for al in allos:
             wts.insert(*al)
+        w_sum = sum(wts)
+        w_allo.append([w/w_sum for w in wts])
 
-    weights = np.array([np.array(l) for l in weights])
+    weights = np.array([np.array(l) for l in w_allo])
 
     return [*map(weight_cov, weights)]
 

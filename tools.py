@@ -28,8 +28,8 @@ def finish_profile(pr, output_name):
         f.close()
 
 
-def save_res_dict(full_res_dict, world, total_in_port):
-    with open('res_df' + '_' + str(len(world)) + '_' + str(total_in_port) + '.json', 'w') as fp:
+def save_res_dict(full_res_dict, world, total_in_port, tick_group):
+    with open('res_df' + '_' + str(len(world)) + '_' + tick_group + '_' + str(total_in_port) + '.json', 'w') as fp:
         json.dump(full_res_dict, fp)
     fp.close()
 
@@ -51,9 +51,9 @@ def parse_res_dict(dat_loc, json_res, risk_free, gspc_list, plot=False):
         df_list.append(key_val)
         ret_sharp.append(r_s)
 
-    df = pd.DataFrame(df_list, columns=['stocks', 'stock_1', 'stock_2', 'stock_3', 'stock_4',
-                                        'stock_5','stock_6', 'stock_7', 'stock_8', 'stock_9',
-                                        'exp_ret', 'std_dev', 'port_purse', 'port_pos_val', 'port_val', 'sharpe'])
+    col_names = ['stocks'] + ['stock_' + str(i) for i in range(0, int(json_res.split("_")[-1]))]
+    col_names = col_names + ['exp_ret', 'std_dev', 'port_purse', 'port_pos_val', 'port_val', 'sharpe']
+    df = pd.DataFrame(df_list, columns=col_names)
     df.to_csv(dat_loc + json_res + '.csv', index=False)
 
     print(len(df.index))
@@ -61,6 +61,7 @@ def parse_res_dict(dat_loc, json_res, risk_free, gspc_list, plot=False):
 
     if plot:
         ret, _, sharpe = gspc_list
+        ret = (ret+1)*1000000
 
         x = np.array([i[3] for i in ret_sharp])
         y = np.array([i[4] for i in ret_sharp])
